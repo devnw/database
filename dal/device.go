@@ -37,7 +37,7 @@ func (device *Device) IP() string {
 	return device.Info.IP()
 }
 
-// ID returns the ID of the device as according to the PDE database
+// ID returns the ID of the device as according to the Aegis database
 func (device *Device) ID() string {
 	return device.Info.ID()
 }

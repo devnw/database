@@ -16,7 +16,7 @@ type Detection struct {
 	cacheLock sync.Mutex
 }
 
-// ID returns the ID of the detection as tracked by the PDE database
+// ID returns the ID of the detection as tracked by the Aegis database
 func (detection *Detection) ID() string {
 	return detection.Info.ID()
 }
