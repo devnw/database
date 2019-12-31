@@ -2,9 +2,9 @@ package database
 
 import (
 	"database/sql"
-	"github.com/pkg/errors"
 	"github.com/nortonlifelock/connection"
 	"github.com/nortonlifelock/domain"
+	"github.com/pkg/errors"
 )
 
 type dbconn struct {
