@@ -362,6 +362,35 @@ func (conn *dbconn) CreateJobConfig(_JobID int, _OrganizationID string, _Priorit
 	return id, affectedRows, err
 }
 
+// CreateJobConfigWPayload executes the stored procedure CreateJobConfigWPayload against the database
+func (conn *dbconn) CreateJobConfigWPayload(_JobID int, _OrganizationID string, _PriorityOverride int, _Continuous bool, _WaitInSeconds int, _MaxInstances int, _AutoStart bool, _CreatedBy string, _DataInSourceID string, _DataOutSourceID string, _Payload string) (id int, affectedRows int, err error) {
+
+	conn.Exec(&connection.Procedure{
+		Proc:       "CreateJobConfigWPayload",
+		Parameters: []interface{}{_JobID, _OrganizationID, _PriorityOverride, _Continuous, _WaitInSeconds, _MaxInstances, _AutoStart, _CreatedBy, _DataInSourceID, _DataOutSourceID, _Payload},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if result, ok := results.(sql.Result); ok {
+				var idOut int64
+
+				// Get the id of the last inserted record
+				if idOut, err = result.LastInsertId(); err == nil {
+					id = int(idOut)
+				}
+
+				// Get the number of affected rows for the execution
+				if idOut, err = result.RowsAffected(); ok {
+					affectedRows = int(idOut)
+				}
+			}
+
+		},
+	})
+
+	return id, affectedRows, err
+}
+
 // CreateJobHistory executes the stored procedure CreateJobHistory against the database
 func (conn *dbconn) CreateJobHistory(_JobID int, _ConfigID string, _StatusID int, _Priority int, _Identifier string, _CurrentIteration int, _Payload string, _ThreadID string, _PulseDate time.Time, _CreatedBy string) (id int, affectedRows int, err error) {
 
@@ -455,6 +484,35 @@ func (conn *dbconn) CreateOrganization(_Code string, _Description string, _TimeZ
 	conn.Exec(&connection.Procedure{
 		Proc:       "CreateOrganization",
 		Parameters: []interface{}{_Code, _Description, _TimeZoneOffset, _UpdatedBy},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if result, ok := results.(sql.Result); ok {
+				var idOut int64
+
+				// Get the id of the last inserted record
+				if idOut, err = result.LastInsertId(); err == nil {
+					id = int(idOut)
+				}
+
+				// Get the number of affected rows for the execution
+				if idOut, err = result.RowsAffected(); ok {
+					affectedRows = int(idOut)
+				}
+			}
+
+		},
+	})
+
+	return id, affectedRows, err
+}
+
+// CreateOrganizationWithPayloadEkey executes the stored procedure CreateOrganizationWithPayloadEkey against the database
+func (conn *dbconn) CreateOrganizationWithPayloadEkey(_Code string, _Description string, _TimeZoneOffset float32, _Payload string, _EKEY string, _UpdatedBy string) (id int, affectedRows int, err error) {
+
+	conn.Exec(&connection.Procedure{
+		Proc:       "CreateOrganizationWithPayloadEkey",
+		Parameters: []interface{}{_Code, _Description, _TimeZoneOffset, _Payload, _EKEY, _UpdatedBy},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 
