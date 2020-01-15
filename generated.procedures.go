@@ -7639,6 +7639,35 @@ func (conn *dbconn) UpdateSourceConfig(_ID string, _OrgID string, _Address strin
 	return id, affectedRows, err
 }
 
+// UpdateSourceConfigConcurrencyByID executes the stored procedure UpdateSourceConfigConcurrencyByID against the database
+func (conn *dbconn) UpdateSourceConfigConcurrencyByID(_ID string, _Delay int, _Retries int, _Concurrency int) (id int, affectedRows int, err error) {
+
+	conn.Exec(&connection.Procedure{
+		Proc:       "UpdateSourceConfigConcurrencyByID",
+		Parameters: []interface{}{_ID, _Delay, _Retries, _Concurrency},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if result, ok := results.(sql.Result); ok {
+				var idOut int64
+
+				// Get the id of the last inserted record
+				if idOut, err = result.LastInsertId(); err == nil {
+					id = int(idOut)
+				}
+
+				// Get the number of affected rows for the execution
+				if idOut, err = result.RowsAffected(); ok {
+					affectedRows = int(idOut)
+				}
+			}
+
+		},
+	})
+
+	return id, affectedRows, err
+}
+
 // UpdateSourceConfigToken executes the stored procedure UpdateSourceConfigToken against the database
 func (conn *dbconn) UpdateSourceConfigToken(_ID string, _Token string) (id int, affectedRows int, err error) {
 
