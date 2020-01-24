@@ -74,6 +74,15 @@ func (detection *Detection) Protocol() string {
 	return detection.Info.Protocol()
 }
 
+// IgnoreID returns the ID of the ignore entry that pertains to the detection (if one exists(
+func (detection *Detection) IgnoreID() (*string, error) {
+	return detection.Info.IgnoreID(), nil
+}
+
+func (detection *Detection) Updated() time.Time {
+	return detection.Info.Updated()
+}
+
 // Device returns on object implementing a corresponding Device interface that the detection exists on
 func (detection *Detection) Device() (device domain.Device, err error) {
 	if detection.cacheDev != nil {

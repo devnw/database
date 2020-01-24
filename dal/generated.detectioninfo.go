@@ -22,12 +22,14 @@ type DetectionInfo struct {
 	DetectionStatusIDvar int
 	DeviceIDvar          string
 	IDvar                string
+	IgnoreIDvar          *string
 	OrganizationIDvar    string
 	Portvar              int
 	Proofvar             string
 	Protocolvar          string
 	SourceIDvar          string
 	TimesSeenvar         int
+	Updatedvar           time.Time
 	VulnerabilityIDvar   string
 }
 
@@ -43,12 +45,14 @@ func (myDetectionInfo DetectionInfo) MarshalJSON() ([]byte, error) {
 		"DetectionStatusID": myDetectionInfo.DetectionStatusIDvar,
 		"DeviceID":          myDetectionInfo.DeviceIDvar,
 		"ID":                myDetectionInfo.IDvar,
+		"IgnoreID":          myDetectionInfo.IgnoreIDvar,
 		"OrganizationID":    myDetectionInfo.OrganizationIDvar,
 		"Port":              myDetectionInfo.Portvar,
 		"Proof":             myDetectionInfo.Proofvar,
 		"Protocol":          myDetectionInfo.Protocolvar,
 		"SourceID":          myDetectionInfo.SourceIDvar,
 		"TimesSeen":         myDetectionInfo.TimesSeenvar,
+		"Updated":           myDetectionInfo.Updatedvar,
 		"VulnerabilityID":   myDetectionInfo.VulnerabilityIDvar,
 	})
 }
@@ -76,6 +80,11 @@ func (myDetectionInfo *DetectionInfo) DeviceID() (param string) {
 // ID returns the ID parameter from the DetectionInfo struct
 func (myDetectionInfo *DetectionInfo) ID() (param string) {
 	return myDetectionInfo.IDvar
+}
+
+// IgnoreID returns the IgnoreID parameter from the DetectionInfo struct
+func (myDetectionInfo *DetectionInfo) IgnoreID() (param *string) {
+	return myDetectionInfo.IgnoreIDvar
 }
 
 // OrganizationID returns the OrganizationID parameter from the DetectionInfo struct
@@ -108,6 +117,11 @@ func (myDetectionInfo *DetectionInfo) TimesSeen() (param int) {
 	return myDetectionInfo.TimesSeenvar
 }
 
+// Updated returns the Updated parameter from the DetectionInfo struct
+func (myDetectionInfo *DetectionInfo) Updated() (param time.Time) {
+	return myDetectionInfo.Updatedvar
+}
+
 // VulnerabilityID returns the VulnerabilityID parameter from the DetectionInfo struct
 func (myDetectionInfo *DetectionInfo) VulnerabilityID() (param string) {
 	return myDetectionInfo.VulnerabilityIDvar
@@ -121,6 +135,11 @@ func (myDetectionInfo *DetectionInfo) SetDeviceID(val string) {
 // SetID sets the ID parameter from the DetectionInfo struct
 func (myDetectionInfo *DetectionInfo) SetID(val string) {
 	myDetectionInfo.IDvar = val
+}
+
+// SetIgnoreID sets the IgnoreID parameter from the DetectionInfo struct
+func (myDetectionInfo *DetectionInfo) SetIgnoreID(val string) {
+	myDetectionInfo.IgnoreIDvar = &val
 }
 
 // SetOrganizationID sets the OrganizationID parameter from the DetectionInfo struct

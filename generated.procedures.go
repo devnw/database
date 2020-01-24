@@ -537,11 +537,11 @@ func (conn *dbconn) CreateOrganizationWithPayloadEkey(_Code string, _Description
 }
 
 // CreateScanSummary executes the stored procedure CreateScanSummary against the database
-func (conn *dbconn) CreateScanSummary(_SourceID string, _OrgID string, _ScanID string, _ScanStatus string, _ScanClosePayload string, _ParentJobID string) (id int, affectedRows int, err error) {
+func (conn *dbconn) CreateScanSummary(_SourceID string, _ScannerSourceConfigID string, _OrgID string, _ScanID string, _ScanStatus string, _ScanClosePayload string, _ParentJobID string) (id int, affectedRows int, err error) {
 
 	conn.Exec(&connection.Procedure{
 		Proc:       "CreateScanSummary",
-		Parameters: []interface{}{_SourceID, _OrgID, _ScanID, _ScanStatus, _ScanClosePayload, _ParentJobID},
+		Parameters: []interface{}{_SourceID, _ScannerSourceConfigID, _OrgID, _ScanID, _ScanStatus, _ScanClosePayload, _ParentJobID},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 
@@ -1445,6 +1445,53 @@ func (conn *dbconn) GetAssetGroup(inOrgID string, _GroupID int, _ScannerSourceID
 	return retAssetGroup, err
 }
 
+// GetAssetGroupForOrg executes the stored procedure GetAssetGroupForOrg against the database and returns the read results
+func (conn *dbconn) GetAssetGroupForOrg(inScannerSource string, inOrgID string) ([]domain.AssetGroup, error) {
+	var err error
+	var retAssetGroup = make([]domain.AssetGroup, 0)
+
+	conn.Read(&connection.Procedure{
+		Proc:       "GetAssetGroupForOrg",
+		Parameters: []interface{}{inScannerSource, inOrgID},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if err == nil {
+
+				err = conn.getRows(results,
+					func(rows *sql.Rows) (err error) {
+						if err = rows.Err(); err == nil {
+
+							var myGroupID int
+							var myScannerSourceID string
+							var myCloudSourceID *string
+
+							if err = rows.Scan(
+
+								&myGroupID,
+								&myScannerSourceID,
+								&myCloudSourceID,
+							); err == nil {
+
+								newAssetGroup := &dal.AssetGroup{
+									GroupIDvar:         myGroupID,
+									ScannerSourceIDvar: myScannerSourceID,
+									CloudSourceIDvar:   myCloudSourceID,
+								}
+
+								retAssetGroup = append(retAssetGroup, newAssetGroup)
+							}
+						}
+
+						return err
+					})
+			}
+		},
+	})
+
+	return retAssetGroup, err
+}
+
 // GetAssetGroupsByCloudSource executes the stored procedure GetAssetGroupsByCloudSource against the database and returns the read results
 func (conn *dbconn) GetAssetGroupsByCloudSource(inOrgID string, inCloudSourceID string) ([]domain.AssetGroup, error) {
 	var err error
@@ -1892,6 +1939,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 							var mySourceID string
 							var myDeviceID string
 							var myVulnerabilityID string
+							var myIgnoreID *string
 							var myAlertDate time.Time
 							var myProof string
 							var myPort int
@@ -1899,6 +1947,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 							var myActiveKernel *int
 							var myDetectionStatusID int
 							var myTimesSeen int
+							var myUpdated time.Time
 
 							if err = rows.Scan(
 
@@ -1907,6 +1956,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 								&mySourceID,
 								&myDeviceID,
 								&myVulnerabilityID,
+								&myIgnoreID,
 								&myAlertDate,
 								&myProof,
 								&myPort,
@@ -1914,6 +1964,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 								&myActiveKernel,
 								&myDetectionStatusID,
 								&myTimesSeen,
+								&myUpdated,
 							); err == nil {
 
 								newDetectionInfo := &dal.DetectionInfo{
@@ -1922,6 +1973,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 									SourceIDvar:          mySourceID,
 									DeviceIDvar:          myDeviceID,
 									VulnerabilityIDvar:   myVulnerabilityID,
+									IgnoreIDvar:          myIgnoreID,
 									AlertDatevar:         myAlertDate,
 									Proofvar:             myProof,
 									Portvar:              myPort,
@@ -1929,6 +1981,7 @@ func (conn *dbconn) GetDetectionInfo(_DeviceID string, _VulnerabilityID string) 
 									ActiveKernelvar:      myActiveKernel,
 									DetectionStatusIDvar: myDetectionStatusID,
 									TimesSeenvar:         myTimesSeen,
+									Updatedvar:           myUpdated,
 								}
 
 								retDetectionInfo = newDetectionInfo
@@ -1966,6 +2019,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 							var mySourceID string
 							var myDeviceID string
 							var myVulnerabilityID string
+							var myIgnoreID *string
 							var myAlertDate time.Time
 							var myProof string
 							var myPort int
@@ -1973,6 +2027,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 							var myActiveKernel *int
 							var myDetectionStatusID int
 							var myTimesSeen int
+							var myUpdated time.Time
 
 							if err = rows.Scan(
 
@@ -1981,6 +2036,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 								&mySourceID,
 								&myDeviceID,
 								&myVulnerabilityID,
+								&myIgnoreID,
 								&myAlertDate,
 								&myProof,
 								&myPort,
@@ -1988,6 +2044,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 								&myActiveKernel,
 								&myDetectionStatusID,
 								&myTimesSeen,
+								&myUpdated,
 							); err == nil {
 
 								newDetectionInfo := &dal.DetectionInfo{
@@ -1996,6 +2053,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 									SourceIDvar:          mySourceID,
 									DeviceIDvar:          myDeviceID,
 									VulnerabilityIDvar:   myVulnerabilityID,
+									IgnoreIDvar:          myIgnoreID,
 									AlertDatevar:         myAlertDate,
 									Proofvar:             myProof,
 									Portvar:              myPort,
@@ -2003,6 +2061,7 @@ func (conn *dbconn) GetDetectionInfoAfter(_After time.Time, _OrgID string) ([]do
 									ActiveKernelvar:      myActiveKernel,
 									DetectionStatusIDvar: myDetectionStatusID,
 									TimesSeenvar:         myTimesSeen,
+									Updatedvar:           myUpdated,
 								}
 
 								retDetectionInfo = append(retDetectionInfo, newDetectionInfo)
@@ -2040,6 +2099,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 							var mySourceID string
 							var myDeviceID string
 							var myVulnerabilityID string
+							var myIgnoreID *string
 							var myAlertDate time.Time
 							var myProof string
 							var myPort int
@@ -2047,6 +2107,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 							var myActiveKernel *int
 							var myDetectionStatusID int
 							var myTimesSeen int
+							var myUpdated time.Time
 
 							if err = rows.Scan(
 
@@ -2055,6 +2116,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 								&mySourceID,
 								&myDeviceID,
 								&myVulnerabilityID,
+								&myIgnoreID,
 								&myAlertDate,
 								&myProof,
 								&myPort,
@@ -2062,6 +2124,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 								&myActiveKernel,
 								&myDetectionStatusID,
 								&myTimesSeen,
+								&myUpdated,
 							); err == nil {
 
 								newDetectionInfo := &dal.DetectionInfo{
@@ -2070,6 +2133,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 									SourceIDvar:          mySourceID,
 									DeviceIDvar:          myDeviceID,
 									VulnerabilityIDvar:   myVulnerabilityID,
+									IgnoreIDvar:          myIgnoreID,
 									AlertDatevar:         myAlertDate,
 									Proofvar:             myProof,
 									Portvar:              myPort,
@@ -2077,6 +2141,7 @@ func (conn *dbconn) GetDetectionInfoBySourceVulnID(_SourceDeviceID string, _Sour
 									ActiveKernelvar:      myActiveKernel,
 									DetectionStatusIDvar: myDetectionStatusID,
 									TimesSeenvar:         myTimesSeen,
+									Updatedvar:           myUpdated,
 								}
 
 								retDetectionInfo = newDetectionInfo
@@ -2255,6 +2320,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 							var mySourceID string
 							var myDeviceID string
 							var myVulnerabilityID string
+							var myIgnoreID *string
 							var myAlertDate time.Time
 							var myProof string
 							var myPort int
@@ -2262,6 +2328,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 							var myActiveKernel *int
 							var myDetectionStatusID int
 							var myTimesSeen int
+							var myUpdated time.Time
 
 							if err = rows.Scan(
 
@@ -2270,6 +2337,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 								&mySourceID,
 								&myDeviceID,
 								&myVulnerabilityID,
+								&myIgnoreID,
 								&myAlertDate,
 								&myProof,
 								&myPort,
@@ -2277,6 +2345,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 								&myActiveKernel,
 								&myDetectionStatusID,
 								&myTimesSeen,
+								&myUpdated,
 							); err == nil {
 
 								newDetectionInfo := &dal.DetectionInfo{
@@ -2285,6 +2354,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 									SourceIDvar:          mySourceID,
 									DeviceIDvar:          myDeviceID,
 									VulnerabilityIDvar:   myVulnerabilityID,
+									IgnoreIDvar:          myIgnoreID,
 									AlertDatevar:         myAlertDate,
 									Proofvar:             myProof,
 									Portvar:              myPort,
@@ -2292,6 +2362,7 @@ func (conn *dbconn) GetDetectionsInfoForDevice(_DeviceID string) ([]domain.Detec
 									ActiveKernelvar:      myActiveKernel,
 									DetectionStatusIDvar: myDetectionStatusID,
 									TimesSeenvar:         myTimesSeen,
+									Updatedvar:           myUpdated,
 								}
 
 								retDetectionInfo = append(retDetectionInfo, newDetectionInfo)
@@ -3485,6 +3556,89 @@ func (conn *dbconn) GetJobConfigByOrgIDAndJobID(_OrgID string, _JobID int) ([]do
 	conn.Read(&connection.Procedure{
 		Proc:       "GetJobConfigByOrgIDAndJobID",
 		Parameters: []interface{}{_OrgID, _JobID},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if err == nil {
+
+				err = conn.getRows(results,
+					func(rows *sql.Rows) (err error) {
+						if err = rows.Err(); err == nil {
+
+							var myID string
+							var myJobID int
+							var myOrganizationID string
+							var myDataInSourceConfigID *string
+							var myDataOutSourceConfigID *string
+							var myPriorityOverride *int
+							var myContinuous []uint8
+							var myWaitInSeconds int
+							var myMaxInstances int
+							var myAutoStart []uint8
+							var myCreatedDate time.Time
+							var myCreatedBy string
+							var myUpdatedDate *time.Time
+							var myUpdatedBy *string
+							var myLastJobStart *time.Time
+
+							if err = rows.Scan(
+
+								&myID,
+								&myJobID,
+								&myOrganizationID,
+								&myDataInSourceConfigID,
+								&myDataOutSourceConfigID,
+								&myPriorityOverride,
+								&myContinuous,
+								&myWaitInSeconds,
+								&myMaxInstances,
+								&myAutoStart,
+								&myCreatedDate,
+								&myCreatedBy,
+								&myUpdatedDate,
+								&myUpdatedBy,
+								&myLastJobStart,
+							); err == nil {
+
+								newJobConfig := &dal.JobConfig{
+									IDvar:                    myID,
+									JobIDvar:                 myJobID,
+									OrganizationIDvar:        myOrganizationID,
+									DataInSourceConfigIDvar:  myDataInSourceConfigID,
+									DataOutSourceConfigIDvar: myDataOutSourceConfigID,
+									PriorityOverridevar:      myPriorityOverride,
+									Continuousvar:            myContinuous[0] > 0, // converts uint8 to bool
+									WaitInSecondsvar:         myWaitInSeconds,
+									MaxInstancesvar:          myMaxInstances,
+									AutoStartvar:             myAutoStart[0] > 0, // converts uint8 to bool
+									CreatedDatevar:           myCreatedDate,
+									CreatedByvar:             myCreatedBy,
+									UpdatedDatevar:           myUpdatedDate,
+									UpdatedByvar:             myUpdatedBy,
+									LastJobStartvar:          myLastJobStart,
+								}
+
+								retJobConfig = append(retJobConfig, newJobConfig)
+							}
+						}
+
+						return err
+					})
+			}
+		},
+	})
+
+	return retJobConfig, err
+}
+
+// GetJobConfigByOrgIDAndJobIDWithSC executes the stored procedure GetJobConfigByOrgIDAndJobIDWithSC against the database and returns the read results
+func (conn *dbconn) GetJobConfigByOrgIDAndJobIDWithSC(_OrgID string, _JobID int, _SourceConfigID string) ([]domain.JobConfig, error) {
+	var err error
+	var retJobConfig = make([]domain.JobConfig, 0)
+
+	conn.Read(&connection.Procedure{
+		Proc:       "GetJobConfigByOrgIDAndJobIDWithSC",
+		Parameters: []interface{}{_OrgID, _JobID, _SourceConfigID},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 
@@ -6046,6 +6200,71 @@ func (conn *dbconn) GetTicketByTitle(_Title string, _OrgID string) (domain.Ticke
 	return retTicketSummary, err
 }
 
+// GetUnfinishedScanSummariesBySourceConfigOrgID executes the stored procedure GetUnfinishedScanSummariesBySourceConfigOrgID against the database and returns the read results
+func (conn *dbconn) GetUnfinishedScanSummariesBySourceConfigOrgID(_ScannerSourceConfigID string, _OrgID string) ([]domain.ScanSummary, error) {
+	var err error
+	var retScanSummary = make([]domain.ScanSummary, 0)
+
+	conn.Read(&connection.Procedure{
+		Proc:       "GetUnfinishedScanSummariesBySourceConfigOrgID",
+		Parameters: []interface{}{_ScannerSourceConfigID, _OrgID},
+		Callback: func(results interface{}, dberr error) {
+			err = dberr
+
+			if err == nil {
+
+				err = conn.getRows(results,
+					func(rows *sql.Rows) (err error) {
+						if err = rows.Err(); err == nil {
+
+							var mySourceID string
+							var myTemplateID *string
+							var myOrgID string
+							var mySourceKey *string
+							var myScanStatus string
+							var myScanClosePayload string
+							var myParentJobID string
+							var myCreatedDate time.Time
+							var myUpdatedDate *time.Time
+
+							if err = rows.Scan(
+
+								&mySourceID,
+								&myTemplateID,
+								&myOrgID,
+								&mySourceKey,
+								&myScanStatus,
+								&myScanClosePayload,
+								&myParentJobID,
+								&myCreatedDate,
+								&myUpdatedDate,
+							); err == nil {
+
+								newScanSummary := &dal.ScanSummary{
+									SourceIDvar:         mySourceID,
+									TemplateIDvar:       myTemplateID,
+									OrgIDvar:            myOrgID,
+									SourceKeyvar:        mySourceKey,
+									ScanStatusvar:       myScanStatus,
+									ScanClosePayloadvar: myScanClosePayload,
+									ParentJobIDvar:      myParentJobID,
+									CreatedDatevar:      myCreatedDate,
+									UpdatedDatevar:      myUpdatedDate,
+								}
+
+								retScanSummary = append(retScanSummary, newScanSummary)
+							}
+						}
+
+						return err
+					})
+			}
+		},
+	})
+
+	return retScanSummary, err
+}
+
 // GetUnfinishedScanSummariesBySourceOrgID executes the stored procedure GetUnfinishedScanSummariesBySourceOrgID against the database and returns the read results
 func (conn *dbconn) GetUnfinishedScanSummariesBySourceOrgID(_SourceID string, _OrgID string) ([]domain.ScanSummary, error) {
 	var err error
@@ -7321,11 +7540,11 @@ func (conn *dbconn) UpdateAssetIDOsTypeIDOfDevice(_ID string, _AssetID string, _
 }
 
 // UpdateDetectionTimesSeen executes the stored procedure UpdateDetectionTimesSeen against the database
-func (conn *dbconn) UpdateDetectionTimesSeen(_DeviceID string, _VulnID string, _TimesSeen int, _StatusID int) (id int, affectedRows int, err error) {
+func (conn *dbconn) UpdateDetectionTimesSeen(_DeviceID string, _VulnID string, _ExceptionID string, _TimesSeen int, _StatusID int) (id int, affectedRows int, err error) {
 
 	conn.Exec(&connection.Procedure{
 		Proc:       "UpdateDetectionTimesSeen",
-		Parameters: []interface{}{_DeviceID, _VulnID, _TimesSeen, _StatusID},
+		Parameters: []interface{}{_DeviceID, _VulnID, _ExceptionID, _TimesSeen, _StatusID},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 

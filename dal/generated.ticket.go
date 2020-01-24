@@ -32,6 +32,7 @@ type Ticket struct {
 	Descriptionvar        *string
 	DeviceIDvar           string
 	DueDatevar            *time.Time
+	GroupIDvar            string
 	HostNamevar           *string
 	IDvar                 int
 	IPAddressvar          *string
@@ -83,6 +84,7 @@ func (myTicket Ticket) MarshalJSON() ([]byte, error) {
 		"Description":        myTicket.Descriptionvar,
 		"DeviceID":           myTicket.DeviceIDvar,
 		"DueDate":            myTicket.DueDatevar,
+		"GroupID":            myTicket.GroupIDvar,
 		"HostName":           myTicket.HostNamevar,
 		"ID":                 myTicket.IDvar,
 		"IPAddress":          myTicket.IPAddressvar,
@@ -186,6 +188,11 @@ func (myTicket *Ticket) DeviceID() (param string) {
 // DueDate returns the DueDate parameter from the Ticket struct
 func (myTicket *Ticket) DueDate() (param *time.Time) {
 	return myTicket.DueDatevar
+}
+
+// GroupID returns the GroupID parameter from the Ticket struct
+func (myTicket *Ticket) GroupID() (param string) {
+	return myTicket.GroupIDvar
 }
 
 // HostName returns the HostName parameter from the Ticket struct
@@ -356,6 +363,11 @@ func (myTicket *Ticket) SetConfigs(val string) {
 // SetDeviceID sets the DeviceID parameter from the Ticket struct
 func (myTicket *Ticket) SetDeviceID(val string) {
 	myTicket.DeviceIDvar = val
+}
+
+// SetGroupID sets the GroupID parameter from the Ticket struct
+func (myTicket *Ticket) SetGroupID(val string) {
+	myTicket.GroupIDvar = val
 }
 
 // SetHostName sets the HostName parameter from the Ticket struct
