@@ -44,11 +44,11 @@ func (conn *dbconn) CleanUp() (id int, affectedRows int, err error) {
 }
 
 // CreateAssetGroup executes the stored procedure CreateAssetGroup against the database
-func (conn *dbconn) CreateAssetGroup(inOrgID string, _GroupID int, _ScannerSourceID string) (id int, affectedRows int, err error) {
+func (conn *dbconn) CreateAssetGroup(inOrgID string, _GroupID int, _ScannerSourceID string, _ScannerSourceConfigID string) (id int, affectedRows int, err error) {
 
 	conn.Exec(&connection.Procedure{
 		Proc:       "CreateAssetGroup",
-		Parameters: []interface{}{inOrgID, _GroupID, _ScannerSourceID},
+		Parameters: []interface{}{inOrgID, _GroupID, _ScannerSourceID, _ScannerSourceConfigID},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 
@@ -1418,18 +1418,21 @@ func (conn *dbconn) GetAssetGroup(inOrgID string, _GroupID int, _ScannerSourceID
 							var myGroupID int
 							var myScannerSourceID string
 							var myCloudSourceID *string
+							var myScannerSourceConfigID *string
 
 							if err = rows.Scan(
 
 								&myGroupID,
 								&myScannerSourceID,
 								&myCloudSourceID,
+								&myScannerSourceConfigID,
 							); err == nil {
 
 								newAssetGroup := &dal.AssetGroup{
-									GroupIDvar:         myGroupID,
-									ScannerSourceIDvar: myScannerSourceID,
-									CloudSourceIDvar:   myCloudSourceID,
+									GroupIDvar:               myGroupID,
+									ScannerSourceIDvar:       myScannerSourceID,
+									CloudSourceIDvar:         myCloudSourceID,
+									ScannerSourceConfigIDvar: myScannerSourceConfigID,
 								}
 
 								retAssetGroup = newAssetGroup
@@ -1446,13 +1449,13 @@ func (conn *dbconn) GetAssetGroup(inOrgID string, _GroupID int, _ScannerSourceID
 }
 
 // GetAssetGroupForOrg executes the stored procedure GetAssetGroupForOrg against the database and returns the read results
-func (conn *dbconn) GetAssetGroupForOrg(inScannerSource string, inOrgID string) ([]domain.AssetGroup, error) {
+func (conn *dbconn) GetAssetGroupForOrg(inScannerSourceConfigID string, inOrgID string) ([]domain.AssetGroup, error) {
 	var err error
 	var retAssetGroup = make([]domain.AssetGroup, 0)
 
 	conn.Read(&connection.Procedure{
 		Proc:       "GetAssetGroupForOrg",
-		Parameters: []interface{}{inScannerSource, inOrgID},
+		Parameters: []interface{}{inScannerSourceConfigID, inOrgID},
 		Callback: func(results interface{}, dberr error) {
 			err = dberr
 
@@ -1465,18 +1468,21 @@ func (conn *dbconn) GetAssetGroupForOrg(inScannerSource string, inOrgID string) 
 							var myGroupID int
 							var myScannerSourceID string
 							var myCloudSourceID *string
+							var myScannerSourceConfigID *string
 
 							if err = rows.Scan(
 
 								&myGroupID,
 								&myScannerSourceID,
 								&myCloudSourceID,
+								&myScannerSourceConfigID,
 							); err == nil {
 
 								newAssetGroup := &dal.AssetGroup{
-									GroupIDvar:         myGroupID,
-									ScannerSourceIDvar: myScannerSourceID,
-									CloudSourceIDvar:   myCloudSourceID,
+									GroupIDvar:               myGroupID,
+									ScannerSourceIDvar:       myScannerSourceID,
+									CloudSourceIDvar:         myCloudSourceID,
+									ScannerSourceConfigIDvar: myScannerSourceConfigID,
 								}
 
 								retAssetGroup = append(retAssetGroup, newAssetGroup)
@@ -1513,6 +1519,7 @@ func (conn *dbconn) GetAssetGroupsByCloudSource(inOrgID string, inCloudSourceID 
 							var myOrganizationID string
 							var myScannerSourceID string
 							var myCloudSourceID *string
+							var myScannerSourceConfigID *string
 
 							if err = rows.Scan(
 
@@ -1520,13 +1527,15 @@ func (conn *dbconn) GetAssetGroupsByCloudSource(inOrgID string, inCloudSourceID 
 								&myOrganizationID,
 								&myScannerSourceID,
 								&myCloudSourceID,
+								&myScannerSourceConfigID,
 							); err == nil {
 
 								newAssetGroup := &dal.AssetGroup{
-									GroupIDvar:         myGroupID,
-									OrganizationIDvar:  myOrganizationID,
-									ScannerSourceIDvar: myScannerSourceID,
-									CloudSourceIDvar:   myCloudSourceID,
+									GroupIDvar:               myGroupID,
+									OrganizationIDvar:        myOrganizationID,
+									ScannerSourceIDvar:       myScannerSourceID,
+									CloudSourceIDvar:         myCloudSourceID,
+									ScannerSourceConfigIDvar: myScannerSourceConfigID,
 								}
 
 								retAssetGroup = append(retAssetGroup, newAssetGroup)
